@@ -13,7 +13,8 @@ export default function proxy(request: NextRequest) {
     pathname === '/dashboard' ||
     pathname.startsWith('/dashboard/') ||
     pathname.startsWith('/prediksi-baru') ||
-    pathname.startsWith('/riwayat-prediksi');
+    pathname.startsWith('/riwayat-prediksi') ||
+    pathname.startsWith('/data-prediksi');
 
   // Unauthenticated → login
   if (isProtectedPage && !token) {
@@ -39,6 +40,8 @@ export const config = {
     '/prediksi-baru/:path*',
     '/riwayat-prediksi',
     '/riwayat-prediksi/:path*',
+    '/data-prediksi',
+    '/data-prediksi/:path*',
     '/login',
     '/register',
   ],

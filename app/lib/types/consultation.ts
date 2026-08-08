@@ -105,4 +105,75 @@ export interface GetDoctorConsultationListResponse {
   };
 }
 
+export interface DoctorConsultationDetailAiAnalysis {
+  summary: string;
+  detected_symptoms: string[];
+  duration: string;
+  severity_level: string;
+  possible_category: string;
+  urgency_level: string;
+  doctor_note_suggestion?: string;
+  confidence_score: number;
+}
+
+export interface DoctorReview {
+  id: string;
+  consultation_id: string;
+  doctor_id: string;
+  review_note: string;
+  final_category: string;
+  final_urgency_level: string;
+  recommendation: string;
+  created_at: string;
+}
+
+export interface GetDoctorConsultationDetailResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    consultation: {
+      id: string;
+      complaint_text: string;
+      status: string;
+      created_at: string;
+    };
+    patient: DoctorPatientInfo;
+    ai_analysis?: DoctorConsultationDetailAiAnalysis;
+    review?: DoctorReview;
+  };
+}
+
+export interface SubmitDoctorReviewRequest {
+  review_note: string;
+  final_category: string;
+  final_urgency_level: string;
+  recommendation: string;
+}
+
+export interface SubmitDoctorReviewResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    review: DoctorReview;
+  };
+}
+
+export interface UpdateConsultationStatusRequest {
+  status: 'closed' | string;
+}
+
+export interface UpdateConsultationStatusResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    consultation: {
+      id: string;
+      status: string;
+      updated_at: string;
+    };
+  };
+  errors?: Array<{ field: string; message: string }>;
+}
+
+
 

@@ -2,6 +2,10 @@ import {
   CreateConsultationResponse,
   GetConsultationDetailResponse,
   GetConsultationListResponse,
+  GetDoctorConsultationDetailResponse,
+  SubmitDoctorReviewRequest,
+  SubmitDoctorReviewResponse,
+  UpdateConsultationStatusResponse,
 } from '../types/consultation';
 
 export async function createConsultationService(
@@ -67,4 +71,60 @@ export async function getConsultationListService(params?: {
   }
   return data;
 }
+
+export async function getDoctorConsultationDetailService(
+  id: string
+): Promise<GetDoctorConsultationDetailResponse> {
+  const res = await fetch(`/api/proxy/doctor/consultations/${id}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  const data = await res.json();
+  if (!res.ok && !data.message) {
+    throw new Error('Gagal mengambil detail konsultasi dokter');
+  }
+  return data;
+}
+
+export async function submitDoctorReviewService(
+  id: string,
+  reviewData: SubmitDoctorReviewRequest
+): Promise<SubmitDoctorReviewResponse> {
+  const res = await fetch(`/api/proxy/doctor/consultations/${id}/review`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(reviewData),
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.message || 'Gagal menyimpan review');
+  }
+  return data;
+}
+
+export async function updateConsultationStatusService(
+  id: string,
+  status: string = 'closed'
+): Promise<UpdateConsultationStatusResponse> {
+  const res = await fetch(`/api/proxy/doctor/consultations/${id}/status`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ status }),
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.message || 'Status gagal diperbarui');
+  }
+  return data;
+}
+
 

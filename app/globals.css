@@ -67,3 +67,18 @@ body {
   animation: modalEnter 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* Slide-over Modal Animation */
+@keyframes slideOverEnter {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-slideOverEnter {
+  animation: slideOverEnter 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+
