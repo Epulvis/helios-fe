@@ -57,7 +57,9 @@ export default function DashboardLayout({
     }
   };
 
-  const navItems = [
+  const isDoctor = user?.role === 'doctor';
+
+  const patientNavItems = [
     {
       label: 'Dashboard',
       href: '/',
@@ -101,6 +103,53 @@ export default function DashboardLayout({
       ),
     },
   ];
+
+  const doctorNavItems = [
+    {
+      label: 'Dashboard',
+      href: '/',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.8}
+            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+          />
+        </svg>
+      ),
+    },
+    {
+      label: 'Data Prediksi Pasien',
+      href: '/data-prediksi',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.8}
+            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+          />
+        </svg>
+      ),
+    },
+    {
+      label: 'Riwayat Prediksi',
+      href: '/riwayat-prediksi',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.8}
+            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+          />
+        </svg>
+      ),
+    },
+  ];
+
+  const navItems = isDoctor ? doctorNavItems : patientNavItems;
 
   return (
     <div className="min-h-screen bg-[#F4F7FB] flex flex-col md:flex-row">
@@ -219,20 +268,38 @@ export default function DashboardLayout({
 
             {/* Profile Avatar */}
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-teal-600 text-white flex items-center justify-between justify-center font-bold text-sm shadow-xs">
-                {user?.name ? user.name.charAt(0).toUpperCase() : 'P'}
+              <div
+                className={`w-9 h-9 rounded-full ${
+                  isDoctor ? 'bg-[#E07A5F] sm:bg-[#E87A47]' : 'bg-teal-600'
+                } text-white flex items-center justify-center font-bold text-sm shadow-xs`}
+              >
+                {isDoctor ? (
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.8}
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
+                  </svg>
+                ) : user?.name ? (
+                  user.name.charAt(0).toUpperCase()
+                ) : (
+                  'P'
+                )}
               </div>
               <div className="hidden sm:block text-left">
                 <p className="text-xs font-semibold text-slate-800 leading-none">
-                  {user?.name || 'Pasien'}
+                  {user?.name || (isDoctor ? 'Dokter' : 'Pasien')}
                 </p>
                 <p className="text-[10px] text-slate-400 leading-none mt-1">
-                  {user?.email || 'pasien@humic.id'}
+                  {user?.email || (isDoctor ? 'dokter@humic.id' : 'pasien@humic.id')}
                 </p>
               </div>
             </div>
           </div>
         </header>
+
 
         {/* Page Content */}
         <main className="flex-1 p-6 overflow-y-auto">{children}</main>

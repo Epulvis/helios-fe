@@ -72,8 +72,20 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const queryString = searchParams.toString();
-    const backendUrl = `${API_BASE_URL}/patient/consultations${queryString ? `?${queryString}` : ''}`;
+    const roleParam = searchParams.get('role');
+    
+    // Copy search params and strip 'role' if present if it's used for routing
+    const targetParams = new URLSearchParams(searchParams);
+    let basePath = '/patient/consultations';
+    
+    if (roleParam === 'doctor') {
+      basePath = '/doctor/consultations';
+      // keep or omit role depending on backend requirements, backend doctor route accepts status, urgency_level, page, limit
+      targetParams.delete('role');
+    }
+
+    const queryString = targetParams.toString();
+    const backendUrl = `${API_BASE_URL}${basePath}${queryString ? `?${queryString}` : ''}`;
 
     const backendRes = await fetch(backendUrl, {
       method: 'GET',
@@ -109,4 +121,5 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
 

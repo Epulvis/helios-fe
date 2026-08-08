@@ -73,3 +73,36 @@ export interface GetConsultationListResponse {
   };
 }
 
+export interface DoctorPatientInfo {
+  id: string;
+  name: string;
+  gender: string;
+  birth_date: string;
+}
+
+export interface DoctorAiAnalysis {
+  possible_category: string;
+  severity_level: string;
+  urgency_level: string;
+  confidence_score: number;
+}
+
+export interface DoctorConsultationItem {
+  id: string;
+  patient: DoctorPatientInfo;
+  complaint_preview: string;
+  status: string;
+  ai_analysis: DoctorAiAnalysis;
+  created_at: string;
+}
+
+export interface GetDoctorConsultationListResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    items: DoctorConsultationItem[];
+    pagination: PaginationData;
+  };
+}
+
+
