@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 import { createConsultationService } from '../../lib/services/consultation';
-import { ConsultationResultModal } from './ConsultationResultModal';
+import { ConsultationResultModal } from '../../components/consultation/ConsultationResultModal';
 
 export function PrediksiBaruForm() {
   const router = useRouter();

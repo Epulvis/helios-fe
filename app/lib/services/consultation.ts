@@ -1,6 +1,7 @@
 import {
   CreateConsultationResponse,
   GetConsultationDetailResponse,
+  GetConsultationListResponse,
 } from '../types/consultation';
 
 export async function createConsultationService(
@@ -39,3 +40,31 @@ export async function getConsultationDetailService(
   }
   return data;
 }
+
+export async function getConsultationListService(params?: {
+  page?: number;
+  limit?: number;
+  status?: string;
+}): Promise<GetConsultationListResponse> {
+  const searchParams = new URLSearchParams();
+  if (params?.page) searchParams.set('page', String(params.page));
+  if (params?.limit) searchParams.set('limit', String(params.limit));
+  if (params?.status && params.status !== 'all') searchParams.set('status', params.status);
+
+  const queryString = searchParams.toString();
+  const url = `/api/proxy/consultations${queryString ? `?${queryString}` : ''}`;
+
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  const data = await res.json();
+  if (!res.ok && !data.message) {
+    throw new Error('Gagal mengambil riwayat konsultasi');
+  }
+  return data;
+}
+

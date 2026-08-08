@@ -55,3 +55,58 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export async function GET(request: NextRequest) {
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get('access_token')?.value;
+
+    if (!token) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Sesi telah berakhir atau tidak sah. Silakan login kembali.',
+        },
+        { status: 401 }
+      );
+    }
+
+    const { searchParams } = new URL(request.url);
+    const queryString = searchParams.toString();
+    const backendUrl = `${API_BASE_URL}/patient/consultations${queryString ? `?${queryString}` : ''}`;
+
+    const backendRes = await fetch(backendUrl, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      cache: 'no-store',
+    });
+
+    const data = await backendRes.json();
+
+    if (backendRes.status === 401) {
+      cookieStore.delete('access_token');
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Sesi telah berakhir. Silakan login kembali.',
+        },
+        { status: 401 }
+      );
+    }
+
+    return NextResponse.json(data, { status: backendRes.status });
+  } catch (error) {
+    console.error('GET consultations list error:', error);
+    return NextResponse.json(
+      {
+        success: false,
+        message: 'Gagal terhubung ke server backend.',
+      },
+      { status: 500 }
+    );
+  }
+}
+

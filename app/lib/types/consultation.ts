@@ -39,3 +39,37 @@ export interface GetConsultationDetailResponse {
     ai_analysis?: AiAnalysis;
   };
 }
+
+export interface ConsultationListItem {
+  id: string;
+  complaint_text: string;
+  status: ConsultationStatus;
+  created_at: string;
+  category?: string;
+  confidence_score?: number;
+}
+
+export interface PaginationData {
+  page: number;
+  limit: number;
+  total: number;
+  total_pages: number;
+}
+
+export interface ConsultationStatistics {
+  this_month: number;
+  best_confidence: number;
+  top_diagnosis: string;
+  distribution?: Record<string, number>;
+}
+
+export interface GetConsultationListResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    items: ConsultationListItem[];
+    pagination: PaginationData;
+    statistics: ConsultationStatistics;
+  };
+}
+
