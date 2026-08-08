@@ -50,3 +50,20 @@ body {
 .animate-fadeIn {
   animation: fadeIn 0.3s ease-out forwards;
 }
+
+/* Modal Enter Animation */
+@keyframes modalEnter {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-modalEnter {
+  animation: modalEnter 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
