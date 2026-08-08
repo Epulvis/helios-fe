@@ -211,7 +211,7 @@ export function RiwayatPrediksiContent() {
             <p className="text-2xl font-black text-emerald-600 leading-tight">
               {isLoading ? '...' : `${formatConfidence(statistics.best_confidence) ?? 0}%`}
             </p>
-            <span className="text-[10px] text-slate-400 block mt-0.5">Tingkat keyakanan AI</span>
+            <span className="text-[10px] text-slate-400 block mt-0.5">Tingkat keyakinan</span>
           </div>
         </div>
 

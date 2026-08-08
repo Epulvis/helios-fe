@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { HeliosLogo } from '../components/ui/HeliosLogo';
 import { useAuthStore } from '../lib/stores/useAuthStore';
 import toast from 'react-hot-toast';
+import useSWR from 'swr';
 
 export default function DashboardLayout({
   children,
@@ -16,6 +17,34 @@ export default function DashboardLayout({
   const router = useRouter();
   const { user, clearAuth } = useAuthStore();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Immediate client-side check on mount
+  useEffect(() => {
+    fetch('/api/session/me').then((res) => {
+      if (res.status === 401) {
+        clearAuth();
+        router.push('/login');
+      }
+    });
+  }, [router, clearAuth]);
+
+  // Client-side session verification via SWR
+  useSWR(
+    '/api/session/me',
+    async (url: string) => {
+      const res = await fetch(url);
+      if (res.status === 401) {
+        clearAuth();
+        toast.error('Sesi Anda telah berakhir. Silakan login kembali.');
+        router.push('/login');
+        throw new Error('Unauthorized');
+      }
+      return res.json();
+    },
+    { revalidateOnFocus: false, shouldRetryOnError: false }
+  );
+
+
 
   const handleLogout = async () => {
     try {
@@ -95,9 +124,8 @@ export default function DashboardLayout({
 
       {/* Sidebar Desktop */}
       <aside
-        className={`w-64 bg-white border-r border-slate-200 flex flex-col justify-between p-6 shrink-0 md:sticky md:top-0 md:h-screen md:overflow-y-auto z-30 ${
-          isMobileMenuOpen ? 'fixed inset-y-0 left-0 z-40 block h-screen overflow-y-auto' : 'hidden md:flex'
-        }`}
+        className={`w-64 bg-white border-r border-slate-200 flex flex-col justify-between p-6 shrink-0 md:sticky md:top-0 md:h-screen md:overflow-y-auto z-30 ${isMobileMenuOpen ? 'fixed inset-y-0 left-0 z-40 block h-screen overflow-y-auto' : 'hidden md:flex'
+          }`}
       >
         <div>
           {/* Logo */}
@@ -114,11 +142,10 @@ export default function DashboardLayout({
                   key={item.href}
                   href={item.href}
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-medium transition-all ${
-                    isActive
+                  className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-medium transition-all ${isActive
                       ? 'bg-blue-50 text-blue-600 font-semibold shadow-xs'
                       : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-                  }`}
+                    }`}
                 >
                   <span className={isActive ? 'text-blue-600' : 'text-slate-400'}>
                     {item.icon}

@@ -10,3 +10,14 @@ export function formatDateIndonesia(isoDateString?: string): string {
     return isoDateString;
   }
 }
+
+export function formatDateShortIndonesia(isoDateString?: string): string {
+  if (!isoDateString) return '-';
+  try {
+    const date = parseISO(isoDateString);
+    return format(date, 'dd MMM yyyy', { locale: id });
+  } catch {
+    return isoDateString;
+  }
+}
+
