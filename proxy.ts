@@ -9,7 +9,6 @@ export default function proxy(request: NextRequest) {
 
   // Protected pages
   const isProtectedPage =
-    pathname === '/' ||
     pathname === '/dashboard' ||
     pathname.startsWith('/dashboard/') ||
     pathname.startsWith('/prediksi-baru') ||
