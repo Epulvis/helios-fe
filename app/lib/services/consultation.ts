@@ -1,4 +1,6 @@
 import {
+  ClaimDoctorConsultationResponse,
+  ConsultationStatus,
   CreateConsultationResponse,
   GetConsultationDetailResponse,
   GetConsultationListResponse,
@@ -7,6 +9,16 @@ import {
   SubmitDoctorReviewResponse,
   UpdateConsultationStatusResponse,
 } from '../types/consultation';
+
+export class ConsultationRequestError extends Error {
+  constructor(
+    message: string,
+    public readonly status: number
+  ) {
+    super(message);
+    this.name = 'ConsultationRequestError';
+  }
+}
 
 export async function createConsultationService(
   complaintText: string
@@ -103,14 +115,34 @@ export async function submitDoctorReviewService(
 
   const data = await res.json();
   if (!res.ok) {
-    throw new Error(data.message || 'Gagal menyimpan review');
+    throw new ConsultationRequestError(data.message || 'Gagal menyimpan review', res.status);
+  }
+  return data;
+}
+
+export async function claimDoctorConsultationService(
+  id: string
+): Promise<ClaimDoctorConsultationResponse> {
+  const res = await fetch(`/api/proxy/doctor/consultations/${id}/claim`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    throw new ConsultationRequestError(
+      data.message || 'Konsultasi gagal diambil',
+      res.status
+    );
   }
   return data;
 }
 
 export async function updateConsultationStatusService(
   id: string,
-  status: string = 'closed'
+  status: Extract<ConsultationStatus, 'closed'> = 'closed'
 ): Promise<UpdateConsultationStatusResponse> {
   const res = await fetch(`/api/proxy/doctor/consultations/${id}/status`, {
     method: 'PATCH',
@@ -122,7 +154,7 @@ export async function updateConsultationStatusService(
 
   const data = await res.json();
   if (!res.ok) {
-    throw new Error(data.message || 'Status gagal diperbarui');
+    throw new ConsultationRequestError(data.message || 'Status gagal diperbarui', res.status);
   }
   return data;
 }

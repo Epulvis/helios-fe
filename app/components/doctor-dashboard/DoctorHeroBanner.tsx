@@ -1,18 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { useAuthStore } from '../../lib/stores/useAuthStore';
 
 export function DoctorHeroBanner() {
   const { user } = useAuthStore();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const doctorName = mounted && user?.name ? user.name : 'Dokter';
+  const doctorName = user?.name || 'Dokter';
 
   return (
     <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#EFF6FF] via-[#F4F8FF] to-[#EBF3FF] border border-blue-100/90 p-6 sm:p-8 shadow-xs flex flex-col justify-between gap-4">
@@ -21,7 +15,7 @@ export function DoctorHeroBanner() {
           Selamat Datang, {doctorName} 👋
         </h1>
         <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
-          Pantau dan tinjau hasil prediksi pasien berbasis NLP. Saat ini terdapat beberapa kasus yang membutuhkan perhatian dan tinjauan Anda.
+          Pantau antrian konsultasi, ambil kasus yang tersedia, dan selesaikan tinjauan pasien Anda.
         </p>
 
         <div className="pt-2">

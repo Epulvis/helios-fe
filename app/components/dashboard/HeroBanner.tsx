@@ -1,19 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAuthStore } from '../../lib/stores/useAuthStore';
 
 export function HeroBanner() {
   const { user } = useAuthStore();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const patientName = mounted && user?.name ? user.name : user?.name || 'Pasien';
+  const patientName = user?.name || 'Pasien';
 
   return (
     <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#EDF7FF] via-[#F4F9FF] to-[#E6F4FF] border border-blue-100/80 p-6 sm:p-8 shadow-xs flex flex-col md:flex-row items-center justify-between gap-6">

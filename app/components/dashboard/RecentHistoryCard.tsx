@@ -24,8 +24,8 @@ export function RecentHistoryCard() {
 
   const items = data?.data?.items || [];
 
-  const getCategoryBadgeStyle = (category?: string) => {
-    const cat = (category || 'Umum').toLowerCase();
+  const getCategoryBadgeStyle = (category?: string | null) => {
+    const cat = (category || '').toLowerCase();
     if (cat.includes('influenza') || cat.includes('pernapasan')) {
       return {
         badge: 'bg-emerald-50 text-emerald-700 border-emerald-200/80',
@@ -50,7 +50,7 @@ export function RecentHistoryCard() {
     };
   };
 
-  const formatConfidence = (score?: number) => {
+  const formatConfidence = (score?: number | null) => {
     if (score === undefined || score === null) return null;
     return score > 1 ? Math.round(score) : Math.round(score * 100);
   };
@@ -126,7 +126,7 @@ export function RecentHistoryCard() {
             </thead>
             <tbody className="divide-y divide-slate-100 text-xs">
               {items.map((item: ConsultationListItem) => {
-                const category = item.category || 'Umum';
+                const category = item.category || '-';
                 const styles = getCategoryBadgeStyle(category);
                 const confidencePct = formatConfidence(item.confidence_score);
 
@@ -150,7 +150,7 @@ export function RecentHistoryCard() {
                         {category}
                       </span>
                       <span className="text-[10px] text-slate-400 block mt-0.5">
-                        Kemungkinan {category}
+                        {item.category ? 'Review dokter' : 'Belum ditinjau'}
                       </span>
                     </td>
 

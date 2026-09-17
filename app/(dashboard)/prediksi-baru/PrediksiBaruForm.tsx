@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 import { createConsultationService } from '../../lib/services/consultation';
 import { ConsultationResultModal } from '../../components/consultation/ConsultationResultModal';
+import { AiAnalysis } from '../../lib/types/consultation';
 
 export function PrediksiBaruForm() {
   const router = useRouter();
@@ -17,8 +18,9 @@ export function PrediksiBaruForm() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeConsultationId, setActiveConsultationId] = useState<string | null>(null);
+  const [activeAiAnalysis, setActiveAiAnalysis] = useState<AiAnalysis | null>(null);
 
-  const maxChars = 500;
+  const maxChars = 5000;
 
   const handleComplaintChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const val = e.target.value;
@@ -41,6 +43,11 @@ export function PrediksiBaruForm() {
     const trimmed = complaint.trim();
     if (!trimmed) {
       setErrorMessage('Keluhan / Gejala tidak boleh kosong.');
+      return;
+    }
+
+    if (trimmed.length < 10) {
+      setErrorMessage('Keluhan / Gejala minimal 10 karakter.');
       return;
     }
 
@@ -68,6 +75,7 @@ export function PrediksiBaruForm() {
       if (response.success && response.data?.consultation?.id) {
         toast.success(response.message || 'Konsultasi berhasil dibuat');
         setActiveConsultationId(response.data.consultation.id);
+        setActiveAiAnalysis(response.data.ai_analysis);
         setIsModalOpen(true);
       } else {
         toast.error(response.message || 'Gagal memproses prediksi');
@@ -386,6 +394,7 @@ export function PrediksiBaruForm() {
         isOpen={isModalOpen}
         consultationId={activeConsultationId}
         onClose={() => setIsModalOpen(false)}
+        initialAiAnalysis={activeAiAnalysis}
       />
     </div>
   );

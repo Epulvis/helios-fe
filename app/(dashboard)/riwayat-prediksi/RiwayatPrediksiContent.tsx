@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useSyncExternalStore } from 'react';
 import useSWR from 'swr';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -8,6 +8,8 @@ import toast from 'react-hot-toast';
 import { GetConsultationListResponse, ConsultationListItem } from '../../lib/types/consultation';
 import { formatDateIndonesia } from '../../lib/utils/date';
 import { ConsultationResultModal } from '../../components/consultation/ConsultationResultModal';
+import { useAuthStore } from '../../lib/stores/useAuthStore';
+import { DoctorHistoryContent } from './DoctorHistoryContent';
 
 const fetcher = async (url: string): Promise<GetConsultationListResponse> => {
   const res = await fetch(url);
@@ -21,7 +23,7 @@ const fetcher = async (url: string): Promise<GetConsultationListResponse> => {
   return data;
 };
 
-export function RiwayatPrediksiContent() {
+function PatientHistoryContent() {
   const router = useRouter();
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState('all');
@@ -57,8 +59,8 @@ export function RiwayatPrediksiContent() {
   const pagination = data?.data?.pagination || { page: 1, limit: 7, total: 0, total_pages: 1 };
   const statistics = data?.data?.statistics || {
     this_month: 0,
-    best_confidence: 0,
-    top_diagnosis: '-',
+    best_confidence: null,
+    top_diagnosis: null,
     distribution: {},
   };
 
@@ -69,6 +71,12 @@ export function RiwayatPrediksiContent() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
+      case 'submitted':
+        return (
+          <span className="inline-flex w-32 items-center justify-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-center text-xs font-semibold text-slate-700">
+            Dikirim
+          </span>
+        );
       case 'processing':
         return (
           <span className="inline-flex items-center justify-center w-32 py-1 px-2.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200/80 text-center">
@@ -78,13 +86,31 @@ export function RiwayatPrediksiContent() {
       case 'analyzed':
         return (
           <span className="inline-flex items-center justify-center w-32 py-1 px-2.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200/80 text-center">
-            Dianalisis
+            Menunggu Dokter
+          </span>
+        );
+      case 'in_review':
+        return (
+          <span className="inline-flex w-32 items-center justify-center rounded-full border border-blue-200/80 bg-blue-50 px-2.5 py-1 text-center text-xs font-semibold text-blue-700">
+            Sedang Ditinjau
           </span>
         );
       case 'reviewed':
         return (
           <span className="inline-flex items-center justify-center w-32 py-1 px-2.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-center">
-            Selesai / Diulas
+            Sudah Ditinjau
+          </span>
+        );
+      case 'closed':
+        return (
+          <span className="inline-flex w-32 items-center justify-center rounded-full border border-slate-200/80 bg-slate-100 px-2.5 py-1 text-center text-xs font-semibold text-slate-700">
+            Selesai
+          </span>
+        );
+      case 'failed':
+        return (
+          <span className="inline-flex w-32 items-center justify-center rounded-full border border-rose-200/80 bg-rose-50 px-2.5 py-1 text-center text-xs font-semibold text-rose-700">
+            Gagal Diproses
           </span>
         );
       default:
@@ -96,8 +122,8 @@ export function RiwayatPrediksiContent() {
     }
   };
 
-  const getCategoryBadge = (category?: string) => {
-    const name = category || 'Umum';
+  const getCategoryBadge = (category?: string | null) => {
+    const name = category || '-';
     const catLower = name.toLowerCase();
 
     let colorStyle = 'bg-blue-50 text-blue-700 border-blue-200/80';
@@ -121,7 +147,7 @@ export function RiwayatPrediksiContent() {
   };
 
 
-  const formatConfidence = (score?: number) => {
+  const formatConfidence = (score?: number | null) => {
     if (score === undefined || score === null) return null;
     const pct = score > 1 ? score : Math.round(score * 100);
     return pct;
@@ -265,9 +291,13 @@ export function RiwayatPrediksiContent() {
                     className="w-full sm:w-auto pl-3.5 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:border-blue-500 cursor-pointer appearance-none"
                   >
                     <option value="all">Semua Status</option>
+                    <option value="submitted">Dikirim</option>
                     <option value="processing">Sedang Diproses</option>
-                    <option value="analyzed">Dianalisis</option>
-                    <option value="reviewed">Selesai / Diulas</option>
+                    <option value="analyzed">Menunggu Dokter</option>
+                    <option value="in_review">Sedang Ditinjau</option>
+                    <option value="reviewed">Sudah Ditinjau</option>
+                    <option value="closed">Selesai</option>
+                    <option value="failed">Gagal Diproses</option>
                   </select>
                   <svg className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -614,4 +644,19 @@ export function RiwayatPrediksiContent() {
       />
     </div>
   );
+}
+
+export function RiwayatPrediksiContent() {
+  const user = useAuthStore((state) => state.user);
+  const hasHydrated = useSyncExternalStore(
+    () => () => undefined,
+    () => true,
+    () => false
+  );
+
+  if (!hasHydrated) {
+    return <div className="py-20 text-center text-sm text-slate-400">Memuat riwayat...</div>;
+  }
+
+  return user?.role === 'doctor' ? <DoctorHistoryContent /> : <PatientHistoryContent />;
 }

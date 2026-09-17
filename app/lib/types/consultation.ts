@@ -1,9 +1,18 @@
-export type ConsultationStatus = 'processing' | 'analyzed' | 'reviewed';
+export type ConsultationStatus =
+  | 'submitted'
+  | 'processing'
+  | 'analyzed'
+  | 'in_review'
+  | 'reviewed'
+  | 'closed'
+  | 'failed';
+
+export type SeverityLevel = 'low' | 'medium' | 'high';
+export type UrgencyLevel = 'normal' | 'priority' | 'urgent';
+export type DoctorConsultationScope = 'available' | 'mine';
 
 export interface ConsultationData {
   id: string;
-  patient_id?: string;
-  doctor_id?: string | null;
   complaint_text: string;
   status: ConsultationStatus;
   created_at: string;
@@ -12,11 +21,20 @@ export interface ConsultationData {
 export interface AiAnalysis {
   summary: string;
   detected_symptoms: string[];
-  duration: string;
-  severity_level: 'low' | 'medium' | 'high' | string;
+  duration: string | null;
+  severity_level: SeverityLevel;
   possible_category: string;
-  urgency_level: string;
+  urgency_level: UrgencyLevel;
+  doctor_note_suggestion: string | null;
   confidence_score: number;
+  model_version: string;
+}
+
+export interface PatientSafeDoctorReview {
+  final_category: string | null;
+  final_urgency_level: UrgencyLevel | null;
+  recommendation: string | null;
+  reviewed_at: string | null;
 }
 
 export interface CreateConsultationRequest {
@@ -28,6 +46,7 @@ export interface CreateConsultationResponse {
   message: string;
   data?: {
     consultation: ConsultationData;
+    ai_analysis: AiAnalysis;
   };
 }
 
@@ -35,8 +54,8 @@ export interface GetConsultationDetailResponse {
   success: boolean;
   message: string;
   data?: {
-    consultation: ConsultationData;
-    ai_analysis?: AiAnalysis;
+    consultation: ConsultationData & { updated_at: string };
+    doctor_review: PatientSafeDoctorReview | null;
   };
 }
 
@@ -45,8 +64,8 @@ export interface ConsultationListItem {
   complaint_text: string;
   status: ConsultationStatus;
   created_at: string;
-  category?: string;
-  confidence_score?: number;
+  category: string | null;
+  confidence_score: number | null;
 }
 
 export interface PaginationData {
@@ -58,9 +77,9 @@ export interface PaginationData {
 
 export interface ConsultationStatistics {
   this_month: number;
-  best_confidence: number;
-  top_diagnosis: string;
-  distribution?: Record<string, number>;
+  best_confidence: number | null;
+  top_diagnosis: string | null;
+  distribution: Record<string, number>;
 }
 
 export interface GetConsultationListResponse {
@@ -76,24 +95,20 @@ export interface GetConsultationListResponse {
 export interface DoctorPatientInfo {
   id: string;
   name: string;
-  gender: string;
-  birth_date: string;
-}
-
-export interface DoctorAiAnalysis {
-  possible_category: string;
-  severity_level: string;
-  urgency_level: string;
-  confidence_score: number;
+  gender: string | null;
+  birth_date: string | null;
 }
 
 export interface DoctorConsultationItem {
   id: string;
-  patient: DoctorPatientInfo;
-  complaint_preview: string;
-  status: string;
-  ai_analysis: DoctorAiAnalysis;
+  complaint_text: string;
+  status: ConsultationStatus;
   created_at: string;
+  assigned_at: string | null;
+  ai_summary: string | null;
+  possible_category: string | null;
+  urgency_level: UrgencyLevel | null;
+  confidence_score: number | null;
 }
 
 export interface GetDoctorConsultationListResponse {
@@ -105,25 +120,12 @@ export interface GetDoctorConsultationListResponse {
   };
 }
 
-export interface DoctorConsultationDetailAiAnalysis {
-  summary: string;
-  detected_symptoms: string[];
-  duration: string;
-  severity_level: string;
-  possible_category: string;
-  urgency_level: string;
-  doctor_note_suggestion?: string;
-  confidence_score: number;
-}
-
 export interface DoctorReview {
   id: string;
-  consultation_id: string;
-  doctor_id: string;
   review_note: string;
-  final_category: string;
-  final_urgency_level: string;
-  recommendation: string;
+  final_category: string | null;
+  final_urgency_level: UrgencyLevel | null;
+  recommendation: string | null;
   created_at: string;
 }
 
@@ -131,23 +133,36 @@ export interface GetDoctorConsultationDetailResponse {
   success: boolean;
   message: string;
   data?: {
-    consultation: {
-      id: string;
-      complaint_text: string;
-      status: string;
-      created_at: string;
+    consultation: ConsultationData & {
+      assigned_at: string | null;
+      reviewed_at: string | null;
+      closed_at: string | null;
+      updated_at: string;
     };
     patient: DoctorPatientInfo;
-    ai_analysis?: DoctorConsultationDetailAiAnalysis;
-    review?: DoctorReview;
+    ai_analysis: AiAnalysis | null;
+    doctor_review: DoctorReview | null;
+  };
+}
+
+export interface ClaimDoctorConsultationResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    consultation: {
+      id: string;
+      doctor_id: string;
+      status: 'in_review';
+      assigned_at: string;
+    };
   };
 }
 
 export interface SubmitDoctorReviewRequest {
   review_note: string;
-  final_category: string;
-  final_urgency_level: string;
-  recommendation: string;
+  final_category?: string | null;
+  final_urgency_level?: UrgencyLevel | null;
+  recommendation?: string | null;
 }
 
 export interface SubmitDoctorReviewResponse {
@@ -155,11 +170,8 @@ export interface SubmitDoctorReviewResponse {
   message: string;
   data?: {
     review: DoctorReview;
+    consultation_status: 'reviewed';
   };
-}
-
-export interface UpdateConsultationStatusRequest {
-  status: 'closed' | string;
 }
 
 export interface UpdateConsultationStatusResponse {
@@ -168,12 +180,9 @@ export interface UpdateConsultationStatusResponse {
   data?: {
     consultation: {
       id: string;
-      status: string;
-      updated_at: string;
+      status: 'closed';
+      closed_at: string;
     };
   };
   errors?: Array<{ field: string; message: string }>;
 }
-
-
-
